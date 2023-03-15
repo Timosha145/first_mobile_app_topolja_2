@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="first_mobile_app_topolja.BoxPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Button Text="Tagasi" x:Name="GoBackBtn" Clicked="Button_Clicked"  BackgroundColor = "DarkGray" TextColor = "WhiteSmoke"></Button>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
