@@ -12,7 +12,10 @@ namespace first_mobile_app_topolja
             new CPage("text page", new TextPage()),
             new CPage("timer page", new TimerPage()),
             new CPage("box page", new BoxPage()),
-            new CPage("RGB Page", new RGBPage())
+            new CPage("RGB Page", new RGBPage()),
+            new CPage("Horoscope Page", new HoroscopePage()),
+            new CPage("TimeTable Page", new TimetablePage()),
+            new CPage("MyOwn Page", new MyOwnPage())
         };
 
         public MainPage()

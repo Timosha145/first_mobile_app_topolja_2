@@ -1,19 +1,31 @@
 ﻿using first_mobile_app_topolja;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.PlatformConfiguration;
+using Xamarin.Forms.PlatformConfiguration.AndroidSpecific;
+using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 using Xamarin.Forms.Xaml;
+using Button = Xamarin.Forms.Button;
+using Slider = Xamarin.Forms.Slider;
 
 namespace first_mobile_app_topolja
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class RGBPage : ContentPage
     {
-        private List<Object> _objects= new List<Object>();
-        private List<RGBSlider> _rgbSliders = new List<RGBSlider>() { new RGBSlider("Red"), new RGBSlider("Green"), new RGBSlider("Blue") };
+        private RGBSlider _rSlider = new RGBSlider("Red");
+        private RGBSlider _gSlider = new RGBSlider("Green");
+        private RGBSlider _bSlider = new RGBSlider("Blue");
+
+        private List<Object> _objects = new List<Object>();
+        private List<RGBSlider> _rgbSliders;
+        private Button _button;
+
+        public static Stepper Stepper;
         public static BoxView ColorBox;
         public static Label ColorBoxValueLabel;
 
@@ -21,26 +33,48 @@ namespace first_mobile_app_topolja
         {
             AbsoluteLayout abs = new AbsoluteLayout();
 
+            _rgbSliders = new List<RGBSlider>() { _rSlider, _gSlider, _bSlider };
+
             ColorBox = new BoxView
             {
-                WidthRequest= 200,
-                HeightRequest= 200,
-                Color= new Color(0,0,0),
+                WidthRequest = 200,
+                HeightRequest = 200,
+                Color = new Color(0, 0, 0),
                 VerticalOptions = LayoutOptions.Center,
-                HorizontalOptions= LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Center,
             };
 
             ColorBoxValueLabel = new Label
             {
-                Text = $"R: {ColorBox.Color.R}, G: {ColorBox.Color.G}, B: {ColorBox.Color.B},"
+                Text = $"R: {ColorBox.Color.R}, G: {ColorBox.Color.G}, B: {ColorBox.Color.B}, Opacity: 100%"
             };
+
+            Stepper = new Stepper
+            {
+                Minimum = 0,
+                Maximum = 255,
+                Increment = 15,
+                Value = 255
+            };
+
+            _button = new Button()
+            {
+                Text = "Random Color",
+                BackgroundColor = Color.DarkGray,
+                TextColor = Color.WhiteSmoke,
+            };
+
+            _button.Clicked += _button_Clicked;
+            Stepper.ValueChanged += Stepper_ValueChanged;
 
             _objects.Add(ColorBox);
             _objects.Add(ColorBoxValueLabel);
+            _objects.Add(Stepper);
+            _objects.Add(_button);
 
             PlaceObjects();
 
-            void PlaceSliders(double xOffset, double yOffset , ref double yPos)
+            void PlaceSliders(double xOffset, double yOffset, ref double yPos)
             {
                 foreach (var item in _rgbSliders)
                 {
@@ -84,6 +118,42 @@ namespace first_mobile_app_topolja
                 Content = abs;
             }
         }
+
+        private void _button_Clicked(object sender, EventArgs e)
+        {
+            Color color = ColorBox.Color;
+            Random random = new Random();
+
+            int currentR = random.Next(0, 255);
+            int currentG = random.Next(0, 255);
+            int currentB = random.Next(0, 255);
+
+            _rSlider.ColorSlider.Value = currentR;
+            _gSlider.ColorSlider.Value = currentG;
+            _bSlider.ColorSlider.Value = currentB;
+
+
+            ColorBox.Color = Color.FromRgba(currentR, currentG, currentB, (int)Stepper.Value);
+
+            ColorBoxValueLabel.Text = $"R: {String.Format("{0:X2}", (int)(color.R * 255))}, G: {String.Format("{0:X2}", (int)(color.G * 255))}" +
+                 $", B: {String.Format("{0:X2}", (int)(color.B * 255))}, Opacity: {Math.Round(Stepper.Value / 255 * 100, 0)}%";
+        }
+
+        private void Stepper_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            Stepper stepper = (Stepper)sender;
+            Color color = ColorBox.Color;
+            double colorValue = stepper.Value;
+
+            int currentR = (int)(color.R * 255);
+            int currentG = (int)(color.G * 255);
+            int currentB = (int)(color.B * 255);
+
+            ColorBox.Color = Color.FromRgba(currentR, currentG, currentB, (int)colorValue);
+
+            ColorBoxValueLabel.Text = $"R: {String.Format("{0:X2}", (int)(color.R * 255))}, G: {String.Format("{0:X2}", (int)(color.G * 255))}" +
+                 $", B: {String.Format("{0:X2}", (int)(color.B * 255))}, Opacity: {Math.Round(colorValue / 255 * 100, 0)}%";
+        }
     }
 }
 
@@ -91,7 +161,7 @@ public class RGBSlider
 {
     public RGBSlider(string title)
     {
-        Title= title;
+        Title = title;
 
         Label.Text = $"{Title}: {(int)ColorSlider.Value}";
 
@@ -104,15 +174,16 @@ public class RGBSlider
     {
         Maximum = 255,
         Minimum = 0,
-        MinimumTrackColor= Color.CornflowerBlue,
+        MinimumTrackColor = Color.CornflowerBlue,
         MaximumTrackColor = Color.DarkBlue,
-        ThumbColor= Color.DarkCyan
+        ThumbColor = Color.DarkCyan,
     };
 
     public Label Label = new Label
     {
         Text = "Color"
     };
+
     private void ColorSlider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
         Slider slider = (Slider)sender;
@@ -121,17 +192,18 @@ public class RGBSlider
 
         Label.Text = $"{Title}: {colorValue}";
 
-        double currentR = color.R;
-        double currentG = color.G;
-        double currentB = color.B;
+        int currentR = (int)(color.R * 255);
+        int currentG = (int)(color.G * 255);
+        int currentB = (int)(color.B * 255);
 
-        if (Title=="Red")
-            RGBPage.ColorBox.Color = Color.FromRgba(colorValue, currentG, currentB, 1);
+        if (Title == "Red")
+            RGBPage.ColorBox.Color = Color.FromRgb(colorValue, currentG, currentB);
         else if (Title == "Green")
-            RGBPage.ColorBox.Color = Color.FromRgba(currentR, colorValue, currentB, 1);
-        else if(Title == "Blue")
-            RGBPage.ColorBox.Color = Color.FromRgba(currentR, currentG, colorValue, 1);
+            RGBPage.ColorBox.Color = Color.FromRgb(currentR, colorValue, currentB);
+        else if (Title == "Blue")
+            RGBPage.ColorBox.Color = Color.FromRgb(currentR, currentG, colorValue);
 
-        RGBPage.ColorBoxValueLabel.Text = $"R: {color.R}, G: {color.G}, B: {color.B},";
+        RGBPage.ColorBoxValueLabel.Text = $"R: {String.Format("{0:X2}", (int)(color.R * 255))}, G: {String.Format("{0:X2}", (int)(color.G * 255))}" +
+            $", B: {String.Format("{0:X2}", (int)(color.B * 255))}, Opacity: {Math.Round(RGBPage.Stepper.Value / 255 * 100, 0)}%";
     }
 }
