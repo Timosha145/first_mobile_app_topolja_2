@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -21,7 +21,8 @@ namespace first_mobile_app_topolja
         {
             _timePicker = new TimePicker
             {
-                Format = "HH:MM",
+                Format = "HH:mm",
+                TextColor = Color.Black
             };
 
             _addTimerBtn = new Button
@@ -55,7 +56,8 @@ namespace first_mobile_app_topolja
             Label timerLbl = new Label
             {
                 Text = _timePicker.Time.ToString("T"),
-                FontSize = 30
+                FontSize = 30,
+                TextColor = Color.DarkGray
             };
 
             Button startTimerBtn = new Button
@@ -119,6 +121,7 @@ namespace first_mobile_app_topolja
             Button btn = (Button)sender;
             CostumTimer costumTimer = _costumTimers[btn.TabIndex];
 
+            costumTimer.Stop = true;
             _stackLayoutMain.Children.Remove(costumTimer.StackLayoutTimer);
         }
 
@@ -130,6 +133,7 @@ namespace first_mobile_app_topolja
             costumTimer.Stop = true;
             costumTimer.Timer = costumTimer.DefaultTimer;
             costumTimer.TimerLbl.Text = costumTimer.Timer.ToString("T");
+            costumTimer.TimerLbl.TextColor = Color.DarkGray;
         }
 
         private void _stopTimerBtn_Clicked(object sender, EventArgs e)
@@ -148,18 +152,44 @@ namespace first_mobile_app_topolja
             costumTimer.Stop = false;
             costumTimer.StopTimerBtn.IsEnabled = true;
             costumTimer.StartTimerBtn.IsEnabled = false;
+            costumTimer.TimerLbl.TextColor = Color.LimeGreen;
 
             double totalSec = costumTimer.DefaultTimer.TotalSeconds;
 
             while (costumTimer.Timer >= new TimeSpan(0,0,0) && !costumTimer.Stop)
             {
                 costumTimer.TimerLbl.Text = costumTimer.Timer.ToString("T");
-                await Task.Delay(1000);
+                await Task.Delay(100);
                 costumTimer.Timer -= new TimeSpan(0, 0, 1);
 
-                if ((totalSec / 2)> costumTimer.Timer.Seconds && costumTimer.TimerLbl.TextColor != Color.Orange)
+                double totalNowSeconds = costumTimer.Timer.Seconds;
+
+                if ((totalSec * 0.75f) > totalNowSeconds && (totalSec * 0.5f) < totalNowSeconds)
+                {
+                    costumTimer.TimerLbl.TextColor = Color.DarkGreen;
+                }
+                else if ((totalSec * 0.5f) > totalNowSeconds && (totalSec * 0.25f) < totalNowSeconds)
                 {
                     costumTimer.TimerLbl.TextColor = Color.Orange;
+                }
+                else if ((totalSec * 0.25f) > totalNowSeconds)
+                {
+                    costumTimer.TimerLbl.TextColor = Color.Red;
+                }
+
+                if (totalNowSeconds==0)
+                {
+                    try
+                    {
+                        // Or use specified time
+                        var duration = TimeSpan.FromSeconds(5);
+                        Vibration.Vibrate(duration);
+                        await DisplayAlert("Timer", "Aeg on läbinud!", "Ok");
+                    }
+                    catch (Exception)
+                    {
+                        // Other error has occurred.
+                    }
                 }
             }
 
